@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roxy Larimar — Opérations</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --bg2: #141414;
+    --bg3: #1a1a1a;
+    --card: #181818;
+    --border: rgba(180,140,80,0.18);
+    --border2: rgba(180,140,80,0.35);
+    --gold: #c8a45a;
+    --gold2: #e8c87a;
+    --red: #c0392b;
+    --green: #27ae60;
+    --text: #e8e0d0;
+    --muted: #888070;
+    --danger: #e74c3c;
+    --accent: #c8a45a;
+    --font-mono: 'Share Tech Mono', monospace;
+    --font-display: 'Syne', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-display); min-height: 100vh; }
+
+  /* ── LOGIN ── */
+  #login-screen {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; background: var(--bg);
+  }
+  .login-box {
+    background: var(--card); border: 1px solid var(--border2);
+    border-radius: 12px; padding: 48px 40px; width: 360px; text-align: center;
+  }
+  .login-box h1 { font-size: 28px; font-weight: 800; color: var(--gold2); letter-spacing: 2px; margin-bottom: 6px; }
+  .login-box p { color: var(--muted); font-size: 13px; margin-bottom: 32px; font-family: var(--font-mono); }
+  .login-box input, .login-box select {
+    width: 100%; padding: 12px 14px; background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: 8px; color: var(--text); font-family: var(--font-display); font-size: 14px;
+    margin-bottom: 14px; outline: none; transition: border .2s;
+  }
+  .login-box input:focus, .login-box select:focus { border-color: var(--gold); }
+  .login-box select option { background: var(--bg2); }
+  .btn-gold {
+    width: 100%; padding: 13px; background: var(--gold); border: none; border-radius: 8px;
+    color: #0d0d0d; font-family: var(--font-display); font-size: 14px; font-weight: 700;
+    letter-spacing: 1px; cursor: pointer; transition: background .2s;
+  }
+  .btn-gold:hover { background: var(--gold2); }
+  .login-err { color: var(--danger); font-size: 13px; margin-top: 10px; font-family: var(--font-mono); }
+
+  /* ── LAYOUT ── */
+  #app { display: none; min-height: 100vh; }
+  .sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0; width: 220px;
+    background: var(--bg2); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; z-index: 100;
+  }
+  .sidebar-logo { padding: 28px 20px 20px; border-bottom: 1px solid var(--border); }
+  .sidebar-logo h2 { font-size: 18px; font-weight: 800; color: var(--gold2); letter-spacing: 2px; }
+  .sidebar-logo span { font-size: 11px; color: var(--muted); font-family: var(--font-mono); }
+  .sidebar-role { padding: 12px 20px; font-size: 11px; font-family: var(--font-mono); color: var(--gold); border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: 1px; }
+  nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+  nav a {
+    display: flex; align-items: center; gap: 10px; padding: 10px 20px;
+    color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: all .15s; text-decoration: none; border-left: 3px solid transparent;
+  }
+  nav a:hover { color: var(--text); background: rgba(200,164,90,0.07); }
+  nav a.active { color: var(--gold2); border-left-color: var(--gold); background: rgba(200,164,90,0.1); }
+  nav a .nav-icon { font-size: 15px; width: 20px; text-align: center; }
+  .sidebar-footer { padding: 16px 20px; border-top: 1px solid var(--border); }
+  .btn-logout {
+    width: 100%; padding: 9px; background: transparent; border: 1px solid var(--border2);
+    border-radius: 6px; color: var(--muted); font-size: 12px; cursor: pointer;
+    font-family: var(--font-display); transition: all .2s;
+  }
+  .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+  .main { margin-left: 220px; min-height: 100vh; }
+  .topbar {
+    background: var(--bg2); border-bottom: 1px solid var(--border);
+    padding: 16px 28px; display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .topbar h1 { font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: 1px; }
+  .sync-badge { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+  .sync-badge.ok { color: var(--green); }
+
+  .content { padding: 24px 32px; max-width: 1400px; }
+
+  /* ── CARDS ── */
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 20px 22px; transition: border .2s;
+  }
+  .stat-card:hover { border-color: var(--border2); }
+  .stat-label { font-size: 11px; color: var(--muted); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .stat-value { font-size: 26px; font-weight: 800; color: var(--gold2); line-height: 1.3; padding: 2px 0; font-family: 'Outfit', sans-serif; }
+  .stat-value.green { color: var(--green); }
+  .stat-value.red { color: var(--danger); }
+  .stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; font-family: var(--font-mono); }
+
+  /* ── FORMS ── */
+  .form-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; margin-bottom: 20px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  label { font-size: 12px; color: var(--muted); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.5px; }
+  input, select, textarea {
+    background: var(--bg2); border: 1px solid var(--border2); border-radius: 8px;
+    color: var(--text); padding: 10px 12px; font-family: var(--font-display); font-size: 14px;
+    outline: none; transition: border .2s;
+  }
+  input:hover, select:hover, textarea:hover { border-color: var(--gold); }
+  input:focus, select:focus, textarea:focus { border-color: var(--gold2); }
+  select option { background: var(--bg2); }
+  textarea { resize: vertical; min-height: 70px; }
+
+  .btn-add {
+    padding: 11px 22px; background: var(--gold); border: none; border-radius: 8px;
+    color: #0d0d0d; font-weight: 700; font-family: var(--font-display); font-size: 13px;
+    cursor: pointer; transition: background .2s; letter-spacing: 0.5px;
+  }
+  .btn-add:hover { background: var(--gold2); }
+  .btn-danger {
+    padding: 6px 12px; background: transparent; border: 1px solid var(--danger);
+    border-radius: 6px; color: var(--danger); font-size: 12px; cursor: pointer;
+    font-family: var(--font-display); transition: all .2s;
+  }
+  .btn-danger:hover { background: var(--danger); color: #fff; }
+
+  /* ── TABLES ── */
+  .table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-top: 16px; }
+  .table-header { padding: 14px 18px; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 700; color: var(--gold); letter-spacing: 1px; font-family: var(--font-mono); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { padding: 11px 14px; text-align: left; font-size: 11px; color: var(--muted); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--border); color: var(--text); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(200,164,90,0.04); }
+  .badge {
+    display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 11px;
+    font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .badge-propre { background: rgba(39,174,96,0.15); color: #27ae60; border: 1px solid rgba(39,174,96,0.3); }
+  .badge-sale { background: rgba(231,76,60,0.15); color: #e74c3c; border: 1px solid rgba(231,76,60,0.3); }
+
+  /* ── SECTIONS ── */
+  .section-title { font-size: 14px; font-weight: 700; color: var(--gold); letter-spacing: 1px; font-family: var(--font-mono); text-transform: uppercase; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .form-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 24px; }
+
+  /* ── STOCK GRID ── */
+  .stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .stock-item {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 22px 16px; text-align: center; transition: border .2s;
+  }
+  .stock-item:hover { border-color: var(--border2); }
+  .stock-emoji { font-size: 32px; margin-bottom: 10px; display: block; }
+  .stock-name { font-size: 12px; color: var(--muted); font-family: var(--font-mono); text-transform: uppercase; margin-bottom: 8px; }
+  .stock-qty { font-size: 28px; font-weight: 800; color: var(--gold2); font-family: 'Outfit', sans-serif; }
+  .stock-meta { font-size: 11px; color: var(--muted); margin-top: 6px; font-family: var(--font-mono); }
+
+  /* ── CONTACT CARD ── */
+  .contact-card {
+    background: var(--card); border: 1px solid var(--gold); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px;
+  }
+  .contact-icon { font-size: 28px; }
+  .contact-info h3 { font-size: 13px; color: var(--gold2); font-weight: 700; margin-bottom: 4px; letter-spacing: 1px; }
+  .contact-info p { font-size: 12px; color: var(--muted); font-family: var(--font-mono); }
+
+  /* ── FOOTER ── */
+  footer { text-align: center; padding: 28px; font-size: 12px; color: var(--muted); font-family: var(--font-mono); border-top: 1px solid var(--border); margin-top: 40px; }
+
+  /* ── SUPABASE CONFIG BANNER ── */
+  .config-banner {
+    background: rgba(200,164,90,0.1); border: 1px solid var(--gold); border-radius: 8px;
+    padding: 12px 16px; margin-bottom: 20px; font-size: 12px; font-family: var(--font-mono);
+    color: var(--gold2); display: none;
+  }
+
+  /* ── TABS (money type) ── */
+  .money-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+  .money-tab {
+    padding: 6px 16px; border-radius: 20px; font-size: 12px; cursor: pointer;
+    border: 1px solid var(--border2); color: var(--muted); background: transparent;
+    font-family: var(--font-mono); transition: all .2s;
+  }
+  .money-tab.active { background: var(--gold); color: #0d0d0d; border-color: var(--gold); }
+
+  /* ── PAGE VISIBILITY ── */
+  .tab-page { display: none; }
+  .tab-page.active { display: block; }
+
+  /* ── MOBILE ── */
+  @media (max-width: 768px) {
+    .sidebar {
+      top: auto; bottom: 0; left: 0; right: 0; width: 100%;
+      height: 60px; flex-direction: row; border-right: none;
+      border-top: 1px solid var(--border);
+    }
+    .sidebar-logo { display: none; }
+    .sidebar-role { display: none; }
+    .sidebar-footer { display: none; }
+    nav {
+      display: flex; flex-direction: row; padding: 0;
+      overflow-x: auto; overflow-y: hidden; width: 100%;
+    }
+    nav a {
+      flex-direction: column; gap: 3px; padding: 8px 12px;
+      font-size: 10px; border-left: none; border-top: 3px solid transparent;
+      min-width: 60px; justify-content: center; align-items: center; white-space: nowrap;
+    }
+    nav a.active { border-top-color: var(--gold); border-left-color: transparent; }
+    nav a .nav-icon { font-size: 18px; width: auto; }
+    .main { margin-left: 0; padding-bottom: 60px; }
+    .topbar { padding: 12px 16px; }
+    .topbar h1 { font-size: 15px; }
+    .content { padding: 16px; }
+    .cards-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+    .form-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat-value { font-size: 20px; }
+    table { font-size: 12px; }
+    th, td { padding: 8px 10px; }
+    .btn-add { width: 100%; }
+    /* Dashboard finance grid */
+    div[style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
+  }
+
+  @media (max-width: 400px) {
+    nav a { font-size: 9px; padding: 6px 8px; min-width: 50px; }
+    .cards-grid { grid-template-columns: 1fr 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+  }
+  .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
+  .shop-item {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 24px 20px; text-align: center; transition: border .2s;
+  }
+  .shop-item:hover { border-color: var(--gold); }
+  .shop-emoji { font-size: 36px; display: block; margin-bottom: 12px; }
+  .shop-name { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .shop-qty { font-size: 26px; font-weight: 800; color: var(--gold2); font-family: 'Outfit', sans-serif; }
+  .shop-label { font-size: 11px; color: var(--muted); font-family: var(--font-mono); }
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>⚜ ROXY</h1>
+    <p>OPÉRATIONS — ACCÈS SÉCURISÉ</p>
+    <select id="login-role">
+      <option value="">— Sélectionner votre rôle —</option>
+      <option value="lead">Lead</option>
+      <option value="colead">Co-Lead</option>
+      <option value="membre">Membre</option>
+      <option value="visiteur">Visiteur</option>
+    </select>
+    <input type="password" id="login-pass" placeholder="Mot de passe" />
+    <button class="btn-gold" onclick="doLogin()">ENTRER</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <h2>⚜ ROXY</h2>
+    </div>
+    <div class="sidebar-role" id="role-display">—</div>
+    <nav id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="doLogout()">✕ DÉCONNEXION</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h1 id="page-title">DASHBOARD</h1>
+        <div id="page-sub" style="font-size:11px;color:var(--muted);font-family:var(--font-mono);margin-top:2px;letter-spacing:0.5px"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="sync-badge" id="sync-status">● sync...</span>
+        <button class="btn-logout" onclick="doLogout()" style="display:none;padding:6px 12px;font-size:11px" id="mobile-logout">✕</button>
+      </div>
+    </div>
+    <div class="content">
+      <!-- pages -->
+      <div id="page-dashboard" class="tab-page"></div>
+      <div id="page-achats" class="tab-page"></div>
+      <div id="page-ventes-clients" class="tab-page"></div>
+      <div id="page-stock" class="tab-page"></div>
+      <div id="page-plantation" class="tab-page"></div>
+      <div id="page-fabrication" class="tab-page"></div>
+      <div id="page-retraits" class="tab-page"></div>
+      <div id="page-ventes-membres" class="tab-page"></div>
+      <div id="page-actions" class="tab-page"></div>
+      <div id="page-magasin" class="tab-page"></div>
+    </div>
+    <footer>© Tous droits réservés Roxy Larimar</footer>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ══════════════════════════════════════════
+// CONFIGURATION SUPABASE
+// Remplace ces valeurs par les tiennes
+// ══════════════════════════════════════════
+const SUPABASE_URL = 'https://agxxgnixkijoverytkdv.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFneHhnbml4a2lqb3Zlcnl0a2R2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMjMzMTYsImV4cCI6MjA5MTU5OTMxNn0.eGpXdR6c0bvORl22-IkqBf_1E61PuVdtHn6cT_Q5bYw';
+
+// MOTS DE PASSE PAR RÔLE (change-les !)
+const PASSWORDS = {
+  lead:     'Rx@7741#Kw!',
+  colead:   'zP3$mNq@86',
+  membre:   'Ht!92vBx&L',
+  visiteur: ''
+};
+
+// ══════════════════════════════════════════
+// DONNÉES
+// ══════════════════════════════════════════
+const ITEMS = [
+  { id:'graines',    label:'Graines',              emoji:'🌱', vendable:true  },
+  { id:'pots',       label:'Pots',                 emoji:'🪴', vendable:true  },
+  { id:'eau',        label:'Bouteilles eau',        emoji:'💧', vendable:false },
+  { id:'appats',     label:'Appâts/Leurres',        emoji:'🎣', vendable:true  },
+  { id:'piratage',   label:'Boîtier piratage',      emoji:'💻', vendable:true  },
+  { id:'crochetage', label:'Outils de crochetage',  emoji:'🔑', vendable:true  },
+  { id:'coupe',      label:'Coupe-vitre',           emoji:'✂️', vendable:true  },
+  { id:'pince',      label:'Pince coupante',        emoji:'🔧', vendable:true  },
+  { id:'darknet',    label:'Boîtier darknet',       emoji:'📡', vendable:true  },
+  { id:'fertilisant',label:'Fertilisant',           emoji:'🧪', vendable:true  },
+  { id:'drogue',     label:'Drogue',                emoji:'💊', vendable:true  },
+  { id:'branches',   label:'Branches cannabis',     emoji:'🌿', vendable:true  },
+  { id:'feuilles_salvia', label:'Feuilles de salvia', emoji:'🍃', vendable:true },
+  { id:'salvia',     label:'Salvia',                emoji:'🌾', vendable:true  },
+  { id:'autre',      label:'Autre',                 emoji:'📦', vendable:false },
+];
+
+const ACTION_TYPES = ['Cambriolage','Braquage','ATM','Gofast','Autre'];
+
+let currentRole = null;
+let db = null;
+let syncInterval = null;
+let localData = {
+  achats: [], ventesClients: [], votesMembres: [], retraits: [], plantations: [], actions: [], fabrications: [], mouvementsStock: []
+};
+
+// ══════════════════════════════════════════
+// ACCÈS PAR RÔLE
+// ══════════════════════════════════════════
+const NAV_ITEMS = [
+  { id:'dashboard',      label:'Dashboard',        icon:'📊', roles:['lead','colead','membre'],               sub:'Vue d\'ensemble de l\'activité' },
+  { id:'achats',         label:'Achats',            icon:'🛒', roles:['lead','colead'],                        sub:'Stock acheté et dépenses' },
+  { id:'ventes-clients', label:'Ventes clients',    icon:'💰', roles:['lead','colead'],                        sub:'Ventes effectuées' },
+  { id:'stock',          label:'Stock',             icon:'📦', roles:['lead','colead','membre'],               sub:'Gestion du stock' },
+  { id:'plantation',     label:'Ma plantation',     icon:'🌿', roles:['lead','colead','membre'],               sub:'Graines plantées pour la culture' },
+  { id:'fabrication',    label:'Fabrication',       icon:'⚗️', roles:['lead','colead','membre'],               sub:'Production et récolte' },
+  { id:'retraits',       label:'Retraits coffre',   icon:'🏦', roles:['lead','colead','membre'],               sub:'Retraits effectués par les membres' },
+  { id:'ventes-membres', label:'Ventes membres',    icon:'🤝', roles:['lead','colead','membre'],               sub:'Suivi des ventes personnelles de chaque membre' },
+  { id:'actions',        label:'Actions illégales', icon:'⚡', roles:['lead','colead','membre'],               sub:'Suivi des actions illégales de chaque membre' },
+  { id:'magasin',        label:'Magasin',           icon:'🏪', roles:['lead','colead','membre','visiteur'],    sub:'Stock disponible à la vente' },
+];
+
+// ══════════════════════════════════════════
+// LOGIN
+// ══════════════════════════════════════════
+window.doLogin = function doLogin() {
+  const role = document.getElementById('login-role').value;
+  const pass = document.getElementById('login-pass').value;
+  if(!role) { showErr('Sélectionner un rôle.'); return; }
+  if(role === 'visiteur' || pass === PASSWORDS[role]) {
+    currentRole = role;
+    localStorage.setItem('rl_role', role);
+    localStorage.setItem('rl_pass', role === 'visiteur' ? '__visiteur__' : pass);
+    initApp();
+  } else {
+    showErr('Mot de passe incorrect.');
+  }
+}
+function showErr(msg) { document.getElementById('login-err').textContent = msg; }
+window.doLogout = function doLogout() {
+  currentRole = null;
+  localStorage.removeItem('rl_role');
+  localStorage.removeItem('rl_pass');
+  clearInterval(syncInterval);
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-role').value = '';
+  document.getElementById('login-err').textContent = '';
+}
+
+// Auto-reconnexion uniquement sur rafraîchissement
+window.addEventListener('load', () => {
+  const r = localStorage.getItem('rl_role');
+  const p = localStorage.getItem('rl_pass');
+  if(!r || !p) return;
+  // Vérifier si c'est un reload (sessionStorage persiste au refresh mais pas à la nouvelle visite)
+  const isReload = sessionStorage.getItem('rl_session') === '1';
+  if(!isReload) {
+    // Première visite — on marque la session mais on ne reconnecte pas
+    sessionStorage.setItem('rl_session', '1');
+    return;
+  }
+  if(r === 'visiteur' && p === '__visiteur__') { currentRole = r; initApp(); return; }
+  if(PASSWORDS[r] && p === PASSWORDS[r]) { currentRole = r; initApp(); return; }
+});
+
+// ══════════════════════════════════════════
+// INIT APP
+// ══════════════════════════════════════════
+function initApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('role-display').textContent = '● ' + currentRole.toUpperCase();
+  // Affiche le bouton déconnexion sur mobile
+  if(window.innerWidth <= 768) {
+    document.getElementById('mobile-logout').style.display = 'block';
+  }
+
+  // Init Supabase
+  try {
+    if(SUPABASE_URL !== 'VOTRE_URL_SUPABASE' && typeof supabase !== 'undefined') {
+      db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    }
+  } catch(e) { db = null; }
+
+  buildNav();
+  loadData().then(() => {
+    const firstPage = NAV_ITEMS.find(n => n.roles.includes(currentRole));
+    if(firstPage) navigateTo(firstPage.id);
+    syncInterval = setInterval(loadData, 30000);
+  }).catch(e => {
+    const firstPage = NAV_ITEMS.find(n => n.roles.includes(currentRole));
+    if(firstPage) navigateTo(firstPage.id);
+  });
+}
+
+function buildNav() {
+  const nav = document.getElementById('sidebar-nav');
+  nav.innerHTML = '';
+  NAV_ITEMS.filter(n => n.roles.includes(currentRole)).forEach(item => {
+    const a = document.createElement('a');
+    a.innerHTML = `<span class="nav-icon">${item.icon}</span>${item.label}`;
+    a.dataset.page = item.id;
+    a.onclick = () => navigateTo(item.id);
+    nav.appendChild(a);
+  });
+}
+
+function navigateTo(pageId) {
+  document.querySelectorAll('nav a').forEach(a => a.classList.toggle('active', a.dataset.page === pageId));
+  document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+  const page = document.getElementById('page-' + pageId);
+  if(page) {
+    page.classList.add('active');
+    const item = NAV_ITEMS.find(n=>n.id===pageId);
+  document.getElementById('page-title').textContent = item?.label.toUpperCase() || '';
+  document.getElementById('page-sub').textContent = item?.sub || '';
+    renderPage(pageId);
+  }
+}
+
+// ══════════════════════════════════════════
+// DATA LAYER (Supabase ou localStorage)
+// ══════════════════════════════════════════
+async function loadData() {
+  // Ne pas synchroniser si l'utilisateur est en train de remplir un formulaire
+  const activeEl = document.activeElement;
+  if(activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'SELECT' || activeEl.tagName === 'TEXTAREA')) {
+    return;
+  }
+  try {
+    if(db) {
+      try {
+        // Chaque table est chargée indépendamment pour éviter qu'une erreur bloque tout
+        const safeLoad = async (table) => {
+          try {
+            const { data, error } = await db.from(table).select('*').order('created_at',{ascending:false});
+            return (error || !data) ? [] : data;
+          } catch(e) { return []; }
+        };
+        localData.achats          = await safeLoad('achats');
+        localData.ventesClients   = await safeLoad('ventes_clients');
+        localData.votesMembres    = await safeLoad('ventes_membres');
+        localData.retraits        = await safeLoad('retraits');
+        localData.plantations     = await safeLoad('plantations');
+        localData.actions         = await safeLoad('actions_illegales');
+        localData.fabrications    = await safeLoad('fabrications');
+        localData.mouvementsStock = await safeLoad('mouvements_stock');
+        setSyncOk();
+      } catch(e) { setSyncErr(); loadFromLS(); }
+    } else {
+      loadFromLS();
+      setSyncWarn();
+    }
+    const active = document.querySelector('.tab-page.active');
+    if(active) renderPage(active.id.replace('page-',''));
+  } catch(e) { console.error('loadData error:', e); }
+}
+
+function loadFromLS() {
+  const saved = localStorage.getItem('rl_data');
+  if(saved) localData = JSON.parse(saved);
+}
+function saveToLS() {
+  localStorage.setItem('rl_data', JSON.stringify(localData));
+}
+function setSyncOk() { const s=document.getElementById('sync-status'); s.className='sync-badge ok'; s.textContent='● synchronisé'; }
+function setSyncErr() { const s=document.getElementById('sync-status'); s.className='sync-badge'; s.textContent='⚠ hors-ligne'; s.style.color='#e74c3c'; }
+function setSyncWarn() { const s=document.getElementById('sync-status'); s.className='sync-badge'; s.textContent='● local (config. Supabase requise)'; s.style.color=getComputedStyle(document.documentElement).getPropertyValue('--gold'); }
+
+async function insertRow(table, row) {
+  row.created_at = new Date().toISOString();
+  const localId = Date.now();
+  if(db) {
+    const rowToInsert = {...row};
+    delete rowToInsert.id;
+    const { error } = await db.from(table).insert(rowToInsert);
+    if(error) {
+      console.error('Supabase insert error:', error);
+      row.id = localId;
+      localData[lsKey(table)].unshift(row);
+      saveToLS();
+    }
+    await loadData();
+  } else {
+    row.id = localId;
+    localData[lsKey(table)].unshift(row);
+    saveToLS();
+    await loadData();
+  }
+}
+async function deleteRow(table, id) {
+  if(db) { await db.from(table).delete().eq('id', id); await loadData(); }
+  else {
+    const k = lsKey(table);
+    localData[k] = localData[k].filter(r => r.id != id);
+    saveToLS(); await loadData();
+  }
+}
+function lsKey(table) {
+  const map = {
+    achats:'achats', ventes_clients:'ventesClients', ventes_membres:'votesMembres',
+    retraits:'retraits', plantations:'plantations', actions_illegales:'actions',
+    fabrications:'fabrications', mouvements_stock:'mouvementsStock'
+  };
+  return map[table];
+}
+
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+const fmt = (n) => n.toLocaleString('fr-BE',{minimumFractionDigits:0,maximumFractionDigits:0}) + ' $';
+const canDelete = () => currentRole === 'lead';
+const canWrite  = () => ['lead','colead','membre'].includes(currentRole);
+
+function moneyBadge(type) {
+  return type==='propre'
+    ? '<span class="badge badge-propre">Propre</span>'
+    : '<span class="badge badge-sale">Sale</span>';
+}
+
+function getStock() {
+  const stock = {};
+  ITEMS.forEach(i => { stock[i.id] = { in: 0, out: 0 }; });
+
+  // Entrées : achats
+  localData.achats.forEach(a => {
+    if(stock[a.item]) stock[a.item].in += Number(a.quantite)||0;
+  });
+
+  // Entrées/Sorties : fabrications (quantité positive = entrée, négative = sortie)
+  (localData.fabrications||[]).forEach(f => {
+    const qty = Number(f.quantite)||0;
+    if(!stock[f.item]) return;
+    if(qty >= 0) stock[f.item].in += qty;
+    else stock[f.item].out += Math.abs(qty);
+  });
+
+  // Sorties : ventes membres
+  (localData.votesMembres||[]).forEach(v => {
+    if(stock[v.item]) stock[v.item].out += Number(v.quantite)||0;
+  });
+
+  // Sorties : ventes clients
+  (localData.ventesClients||[]).forEach(v => {
+    if(stock[v.item]) stock[v.item].out += Number(v.quantite)||0;
+  });
+
+  // Sorties : retraits coffre
+  (localData.retraits||[]).forEach(r => {
+    if(r.item && stock[r.item]) stock[r.item].out += Number(r.quantite)||0;
+  });
+
+  // Sorties : mouvements stock
+  (localData.mouvementsStock||[]).forEach(m => {
+    if(m.sens === 'out' && stock[m.item]) stock[m.item].out += Number(m.quantite)||0;
+    if(m.sens === 'in' && stock[m.item]) stock[m.item].in += Number(m.quantite)||0;
+  });
+
+  return stock;
+}
+
+// ══════════════════════════════════════════
+// RENDER PAGES
+// ══════════════════════════════════════════
+function renderPage(pageId) {
+  const fn = { dashboard:renderDashboard, achats:renderAchats, 'ventes-clients':renderVentesClients,
+    stock:renderStock, plantation:renderPlantation, fabrication:renderFabrication,
+    retraits:renderRetraits, 'ventes-membres':renderVentesMembres, actions:renderActions, magasin:renderMagasin };
+  if(fn[pageId]) fn[pageId]();
+}
+
+// ── DASHBOARD ──
+function renderDashboard() {
+  const el = document.getElementById('page-dashboard');
+  const totalAchPropre = localData.achats.filter(a=>a.type_paiement==='propre').reduce((s,a)=>s+(Number(a.prix_unitaire)||0)*(Number(a.quantite)||0),0);
+  const totalAchSale   = localData.achats.filter(a=>a.type_paiement==='sale').reduce((s,a)=>s+(Number(a.prix_unitaire)||0)*(Number(a.quantite)||0),0);
+  const totalEncPropre = [...(localData.ventesClients||[]),...(localData.votesMembres||[]),...(localData.actions||[])].filter(v=>v.type_paiement==='propre').reduce((s,v)=>s+(Number(v.montant||v.prix_total||0)),0);
+  const totalEncSale   = [...(localData.ventesClients||[]),...(localData.votesMembres||[]),...(localData.actions||[])].filter(v=>v.type_paiement==='sale').reduce((s,v)=>s+(Number(v.montant||v.prix_total||0)),0);
+  const benPropre = totalEncPropre - totalAchPropre;
+  const benSale   = totalEncSale - totalAchSale;
+  const nbAchats  = localData.achats.length;
+  const nbCmds    = (localData.ventesClients||[]).length;
+
+  const allMargins = [...(localData.ventesClients||[]),...(localData.votesMembres||[])].map(v => {
+    if(!v.prix_total || !v.quantite || !v.prix_unitaire_achat) return null;
+    return ((v.prix_total - v.prix_unitaire_achat*v.quantite)/v.prix_total)*100;
+  }).filter(m=>m!==null);
+  const avgMargin = allMargins.length ? (allMargins.reduce((a,b)=>a+b,0)/allMargins.length).toFixed(1) : 0;
+
+  el.innerHTML = `
+  <!-- Contact -->
+  <div class="contact-card">
+    <span class="contact-icon">📞</span>
+    <div class="contact-info">
+      <h3>ROXY LARIMAR</h3>
+      <p>Numéro : 555-622-543 &nbsp;·&nbsp; Livraison sur rendez-vous</p>
+    </div>
+  </div>
+
+  <!-- Bloc finances -->
+  <p class="section-title">FINANCES</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;align-items:start">
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px 22px">
+      <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">💸 Dépenses</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <div style="font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-bottom:4px">PROPRE</div>
+          <div style="font-size:20px;font-weight:800;color:var(--danger);font-family:'Outfit',sans-serif">${fmt(totalAchPropre)}</div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-bottom:4px">SALE</div>
+          <div style="font-size:20px;font-weight:800;color:var(--danger);font-family:'Outfit',sans-serif">${fmt(totalAchSale)}</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px 22px">
+      <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">💰 Encaissements</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <div style="font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-bottom:4px">PROPRE</div>
+          <div style="font-size:20px;font-weight:800;color:var(--green);font-family:'Outfit',sans-serif">${fmt(totalEncPropre)}</div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-bottom:4px">SALE</div>
+          <div style="font-size:20px;font-weight:800;color:var(--green);font-family:'Outfit',sans-serif">${fmt(totalEncSale)}</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px 22px">
+      <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">📈 Bénéfices nets</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <div style="font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-bottom:4px">PROPRE</div>
+          <div style="font-size:20px;font-weight:800;color:${benPropre>=0?'var(--green)':'var(--danger)'};font-family:'Outfit',sans-serif">${fmt(benPropre)}</div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-bottom:4px">SALE</div>
+          <div style="font-size:20px;font-weight:800;color:${benSale>=0?'var(--green)':'var(--danger)'};font-family:'Outfit',sans-serif">${fmt(benSale)}</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px 22px">
+      <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">📊 Indicateurs</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div>
+          <div style="font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-bottom:4px">MARGE MOY.</div>
+          <div style="font-size:20px;font-weight:800;color:var(--gold2);font-family:'Outfit',sans-serif">${avgMargin}%</div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-bottom:4px">ACHATS</div>
+          <div style="font-size:20px;font-weight:800;color:var(--gold2);font-family:'Outfit',sans-serif">${nbAchats}</div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-bottom:4px">CMDS CLIENTS</div>
+          <div style="font-size:20px;font-weight:800;color:var(--gold2);font-family:'Outfit',sans-serif">${nbCmds}</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Résumé des onglets -->
+  <p class="section-title">RÉSUMÉ</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
+    ${summaryBox('🛒 Achats',`${nbAchats} commande(s) · ${fmt(totalAchPropre+totalAchSale)} dépensé`)}
+    ${summaryBox('💰 Ventes clients',`${(localData.ventesClients||[]).length} vente(s) · ${fmt(totalEncPropre+totalEncSale)} encaissé`)}
+    ${summaryBox('📦 Stock',`${Object.values(getStock()).reduce((s,v)=>s+Math.max(0,v.in-v.out),0)} unités disponibles`)}
+    ${summaryBox('🌿 Plantation',`${(localData.plantations||[]).reduce((s,p)=>s+(Number(p.quantite)||0),0)} graines plantées`)}
+    ${summaryBox('🏦 Retraits coffre',`${(localData.retraits||[]).length} retrait(s) · ${fmt((localData.retraits||[]).reduce((s,r)=>s+(Number(r.montant)||0),0))}`)}
+    ${summaryBox('🤝 Ventes membres',`${(localData.votesMembres||[]).length} vente(s)`)}
+    ${summaryBox('⚡ Actions illégales',`${(localData.actions||[]).length} action(s)`)}
+  </div>`;
+}
+function summaryBox(title, text) {
+  return `<div class="stat-card"><div class="stat-label">${title}</div><div style="font-size:13px;color:var(--text);margin-top:6px;font-family:var(--font-mono)">${text}</div></div>`;
+}
+
+// ── ACHATS ──
+function renderAchats() {
+  const el = document.getElementById('page-achats');
+  const total = localData.achats.reduce((s,a)=>s+(Number(a.prix_unitaire)||0)*(Number(a.quantite)||0),0);
+  const totalPropre = localData.achats.filter(a=>a.type_paiement==='propre').reduce((s,a)=>s+(Number(a.prix_unitaire)||0)*(Number(a.quantite)||0),0);
+  const totalSale = localData.achats.filter(a=>a.type_paiement==='sale').reduce((s,a)=>s+(Number(a.prix_unitaire)||0)*(Number(a.quantite)||0),0);
+  const itemCount = {};
+  localData.achats.forEach(a => { itemCount[a.item] = (itemCount[a.item]||0)+(Number(a.quantite)||0); });
+
+  el.innerHTML = `
+  <div class="cards-grid">
+    <div class="stat-card"><div class="stat-label">Total dépensé</div><div class="stat-value red">${fmt(total)}</div></div>
+    <div class="stat-card"><div class="stat-label">Argent propre</div><div class="stat-value red">${fmt(totalPropre)}</div></div>
+    <div class="stat-card"><div class="stat-label">Argent sale</div><div class="stat-value red">${fmt(totalSale)}</div></div>
+    ${ITEMS.filter(i=>itemCount[i.id]).map(i=>`
+    <div class="stat-card">
+      <div class="stat-label">${i.emoji} ${i.label}</div>
+      <div class="stat-value">${itemCount[i.id]||0}</div>
+      <div class="stat-sub">unités achetées</div>
+    </div>`).join('')}
+  </div>
+  ${canWrite() ? `
+  <div class="form-card">
+    <p class="section-title">NOUVELLE COMMANDE</p>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Article</label>
+        <select id="a-item">${ITEMS.map(i=>`<option value="${i.id}">${i.emoji} ${i.label}</option>`).join('')}</select>
+      </div>
+      <div class="form-group">
+        <label>Quantité</label>
+        <input type="number" id="a-qty" min="1" placeholder="1"/>
+      </div>
+      <div class="form-group">
+        <label>Prix unitaire $</label>
+        <input type="number" id="a-price" min="0" placeholder="0"/>
+      </div>
+      <div class="form-group">
+        <label>Type paiement</label>
+        <select id="a-type"><option value="propre">Argent propre</option><option value="sale">Argent sale</option></select>
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="a-date" value="${today()}"/>
+      </div>
+      <div class="form-group">
+        <label>Notes (optionnel)</label>
+        <input type="text" id="a-notes"/>
+      </div>
+    </div>
+    <button class="btn-add" onclick="addAchat()">+ AJOUTER</button>
+  </div>` : ''}
+  <div class="table-wrap">
+    <div class="table-header">HISTORIQUE DES COMMANDES</div>
+    <table>
+      <thead><tr><th>Date</th><th>Article</th><th>Qté</th><th>P.U.</th><th>Total</th><th>Paiement</th><th>Notes</th>${canDelete()?'<th></th>':''}</tr></thead>
+      <tbody>${localData.achats.map(a=>`
+        <tr>
+          <td style="font-family:var(--font-mono)">${a.date||a.created_at?.split('T')[0]||''}</td>
+          <td>${ITEMS.find(i=>i.id===a.item)?.emoji||''} ${ITEMS.find(i=>i.id===a.item)?.label||a.item}</td>
+          <td>${a.quantite}</td>
+          <td>${fmt(Number(a.prix_unitaire)||0)}</td>
+          <td>${fmt((Number(a.prix_unitaire)||0)*(Number(a.quantite)||0))}</td>
+          <td>${moneyBadge(a.type_paiement)}</td>
+          <td style="color:var(--muted);font-size:12px">${a.notes||'—'}</td>
+          ${canDelete()?`<td><button class="btn-danger" onclick="delRow('achats',${a.id})">✕</button></td>`:''}
+        </tr>`).join('')||'<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">Aucun achat enregistré</td></tr>'}
+      </tbody>
+    </table>
+  </div>`;
+}
+window.addAchat = async function addAchat() {
+  await insertRow('achats', {
+    item: document.getElementById('a-item').value,
+    quantite: Number(document.getElementById('a-qty').value),
+    prix_unitaire: Number(document.getElementById('a-price').value),
+    type_paiement: document.getElementById('a-type').value,
+    date: document.getElementById('a-date').value,
+    notes: document.getElementById('a-notes').value,
+  });
+}
+
+// ── VENTES CLIENTS ──
+function renderVentesClients() {
+  const el = document.getElementById('page-ventes-clients');
+  const data = localData.ventesClients||[];
+  const totalEnc = data.reduce((s,v)=>s+(Number(v.prix_total)||0),0);
+  const totalAch = data.reduce((s,v)=>s+(Number(v.prix_unitaire_achat||0))*(Number(v.quantite||0)),0);
+  const benef = totalEnc - totalAch;
+  const totalPropre = data.filter(v=>v.type_paiement==='propre').reduce((s,v)=>s+(Number(v.prix_total)||0),0);
+  const totalSale   = data.filter(v=>v.type_paiement==='sale').reduce((s,v)=>s+(Number(v.prix_total)||0),0);
+  const margins = data.filter(v=>v.prix_total&&v.quantite&&v.prix_unitaire_achat).map(v=>((v.prix_total - v.prix_unitaire_achat*v.quantite)/v.prix_total)*100);
+  const avgM = margins.length ? (margins.reduce((a,b)=>a+b,0)/margins.length).toFixed(1) : 0;
+
+  el.innerHTML = `
+  <div class="cards-grid">
+    <div class="stat-card"><div class="stat-label">Total encaissé</div><div class="stat-value green">${fmt(totalEnc)}</div></div>
+    <div class="stat-card"><div class="stat-label">Propre</div><div class="stat-value green">${fmt(totalPropre)}</div></div>
+    <div class="stat-card"><div class="stat-label">Sale</div><div class="stat-value green">${fmt(totalSale)}</div></div>
+    <div class="stat-card"><div class="stat-label">Bénéfice net</div><div class="stat-value ${benef>=0?'green':'red'}">${fmt(benef)}</div></div>
+    <div class="stat-card"><div class="stat-label">Marge moyenne</div><div class="stat-value">${avgM}%</div></div>
+    <div class="stat-card"><div class="stat-label">Nb. ventes</div><div class="stat-value">${data.length}</div></div>
+  </div>
+  ${canWrite() ? `
+  <div class="form-card">
+    <p class="section-title">NOUVELLE VENTE CLIENT</p>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Article vendu</label>
+        <select id="vc-item">${ITEMS.map(i=>`<option value="${i.id}">${i.emoji} ${i.label}</option>`).join('')}</select>
+      </div>
+      <div class="form-group"><label>Nom du groupe</label><input type="text" id="vc-groupe" placeholder="ex: Los Santos MC"/></div>
+      <div class="form-group"><label>Quantité</label><input type="number" id="vc-qty" min="1" placeholder="1"/></div>
+      <div class="form-group"><label>Prix total $</label><input type="number" id="vc-total" min="0" placeholder="0"/></div>
+      <div class="form-group"><label>P.U. achat $ (optionnel)</label><input type="number" id="vc-pu" min="0" placeholder="0"/></div>
+      <div class="form-group">
+        <label>Paiement</label>
+        <select id="vc-type"><option value="propre">Argent propre</option><option value="sale">Argent sale</option></select>
+      </div>
+      <div class="form-group"><label>Date</label><input type="date" id="vc-date" value="${today()}"/></div>
+      <div class="form-group"><label>Notes</label><input type="text" id="vc-notes"/></div>
+    </div>
+    <button class="btn-add" onclick="addVenteClient()">+ AJOUTER</button>
+  </div>` : ''}
+  <div class="table-wrap">
+    <div class="table-header">HISTORIQUE VENTES CLIENTS</div>
+    <table>
+      <thead><tr><th>Date</th><th>Groupe</th><th>Article</th><th>Qté</th><th>Prix total</th><th>Paiement</th><th>Notes</th>${canDelete()?'<th></th>':''}</tr></thead>
+      <tbody>${data.map(v=>`
+        <tr>
+          <td style="font-family:var(--font-mono)">${v.date||v.created_at?.split('T')[0]||''}</td>
+          <td style="font-weight:600">${v.groupe||'—'}</td>
+          <td>${ITEMS.find(i=>i.id===v.item)?.emoji||''} ${ITEMS.find(i=>i.id===v.item)?.label||v.item}</td>
+          <td>${v.quantite}</td>
+          <td>${fmt(Number(v.prix_total)||0)}</td>
+          <td>${moneyBadge(v.type_paiement)}</td>
+          <td style="color:var(--muted);font-size:12px">${v.notes||'—'}</td>
+          ${canDelete()?`<td><button class="btn-danger" onclick="delRow('ventes_clients',${v.id})">✕</button></td>`:''}
+        </tr>`).join('')||'<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">Aucune vente enregistrée</td></tr>'}
+      </tbody>
+    </table>
+  </div>`;
+}
+window.addVenteClient = async function addVenteClient() {
+  await insertRow('ventes_clients', {
+    groupe: document.getElementById('vc-groupe').value,
+    item: document.getElementById('vc-item').value,
+    quantite: Number(document.getElementById('vc-qty').value),
+    prix_total: Number(document.getElementById('vc-total').value),
+    prix_unitaire_achat: Number(document.getElementById('vc-pu').value),
+    type_paiement: document.getElementById('vc-type').value,
+    date: document.getElementById('vc-date').value,
+    notes: document.getElementById('vc-notes').value,
+  });
+}
+
+// ── STOCK ──
+function renderStock() {
+  const el = document.getElementById('page-stock');
+  const stock = getStock();
+  el.innerHTML = `
+  ${canWrite() ? `
+  <div class="form-card">
+    <p class="section-title">AJOUTER AU STOCK (production / récolte)</p>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Article produit</label>
+        <select id="st-item">${ITEMS.map(i=>`<option value="${i.id}">${i.emoji} ${i.label}</option>`).join('')}</select>
+      </div>
+      <div class="form-group"><label>Quantité</label><input type="number" id="st-qty" min="1" placeholder="1"/></div>
+      <div class="form-group"><label>Date</label><input type="date" id="st-date" value="${today()}"/></div>
+      <div class="form-group"><label>Notes</label><input type="text" id="st-notes" placeholder="ex: récolte plantation"/></div>
+    </div>
+    <button class="btn-add" onclick="addStockEntree()">+ AJOUTER AU STOCK</button>
+  </div>` : ''}
+  <p class="section-title">INVENTAIRE ACTUEL</p>
+  <div class="stock-grid">
+    ${ITEMS.map(i => {
+      const s = stock[i.id]||{in:0,out:0};
+      const dispo = Math.max(0, s.in - s.out);
+      return `<div class="stock-item">
+        <span class="stock-emoji">${i.emoji}</span>
+        <div class="stock-name">${i.label}</div>
+        <div class="stock-qty" style="font-family:'Outfit',sans-serif">${dispo}</div>
+        <div class="stock-meta">↑${s.in} entrées · ↓${s.out} sorties</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+window.addStockEntree = async function addStockEntree() {
+  const item = document.getElementById('st-item').value;
+  const qty = Number(document.getElementById('st-qty').value)||0;
+  const date = document.getElementById('st-date').value;
+  const notes = document.getElementById('st-notes').value;
+  if(qty <= 0) return;
+  await insertRow('fabrications', { item, quantite: qty, date, notes });
+}
+
+// ── FABRICATION ──
+function renderFabrication() {
+  const el = document.getElementById('page-fabrication');
+  const data = localData.fabrications||[];
+  const ITEMS_FAB = [
+    { id:'branches',      label:'Branches cannabis', emoji:'🌿' },
+    { id:'feuilles_salvia',label:'Feuilles de salvia', emoji:'🍃' },
+    { id:'salvia',        label:'Salvia',            emoji:'🌾' },
+    { id:'fertilisant',   label:'Fertilisant',          emoji:'🧪' },
+  ];
+
+  el.innerHTML = `
+  <div class="cards-grid">
+    ${ITEMS_FAB.map(i => {
+      const total = data.filter(f=>f.item===i.id).reduce((s,f)=>s+(Number(f.quantite)||0),0);
+      return `<div class="stat-card">
+        <div class="stat-label">${i.emoji} ${i.label}</div>
+        <div class="stat-value" style="font-family:'Outfit',sans-serif">${total}</div>
+        <div class="stat-sub">fabriqués / récoltés</div>
+      </div>`;
+    }).join('')}
+    <div class="stat-card">
+      <div class="stat-label">Total entrées</div>
+      <div class="stat-value" style="font-family:'Outfit',sans-serif">${data.length}</div>
+    </div>
+  </div>
+  ${canWrite() ? `
+  <div class="form-card">
+    <p class="section-title">NOUVELLE PRODUCTION / RÉCOLTE</p>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;font-family:var(--font-mono)">Ces articles sont automatiquement ajoutés au stock.</p>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Article fabriqué / récolté</label>
+        <select id="fab-item">
+          ${ITEMS_FAB.map(i=>`<option value="${i.id}">${i.emoji} ${i.label}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label>Quantité</label><input type="number" id="fab-qty" min="1" placeholder="1"/></div>
+      <div class="form-group"><label>Date</label><input type="date" id="fab-date" value="${today()}"/></div>
+      <div class="form-group"><label>Notes</label><input type="text" id="fab-notes" placeholder="optionnel"/></div>
+    </div>
+    <button class="btn-add" onclick="addFabrication()">+ ENREGISTRER</button>
+  </div>` : ''}
+  <div class="table-wrap">
+    <div class="table-header">HISTORIQUE FABRICATION / RÉCOLTE</div>
+    <table>
+      <thead><tr><th>Date</th><th>Article</th><th>Quantité</th><th>Notes</th>${canDelete()?'<th></th>':''}</tr></thead>
+      <tbody>${data.map(f=>`
+        <tr>
+          <td style="font-family:var(--font-mono)">${f.date||f.created_at?.split('T')[0]||''}</td>
+          <td>${ITEMS.find(i=>i.id===f.item)?.emoji||''} ${ITEMS.find(i=>i.id===f.item)?.label||f.item}</td>
+          <td style="font-weight:600;color:var(--green)">${f.quantite}</td>
+          <td style="color:var(--muted);font-size:12px">${f.notes||'—'}</td>
+          ${canDelete()?`<td><button class="btn-danger" onclick="delRow('fabrications',${f.id})">✕</button></td>`:''}
+        </tr>`).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">Aucune fabrication</td></tr>'}
+      </tbody>
+    </table>
+  </div>`;
+}
+window.addFabrication = async function addFabrication() {
+  const item = document.getElementById('fab-item').value;
+  const qty = Number(document.getElementById('fab-qty').value)||0;
+  const date = document.getElementById('fab-date').value;
+  const notes = document.getElementById('fab-notes').value;
+  if(qty <= 0) return;
+  // Ajoute la production au stock
+  await insertRow('fabrications', { item, quantite: qty, date, notes });
+  // Si on produit de la salvia, débiter les feuilles de salvia
+  if(item === 'salvia' && qty > 0 && db) {
+    const { error } = await db.from('mouvements_stock').insert({
+      item: 'feuilles_salvia',
+      quantite: qty,
+      sens: 'out',
+      source: 'fabrication_salvia',
+      date: date,
+      created_at: new Date().toISOString()
+    });
+    if(error) console.error('Erreur mouvements_stock:', JSON.stringify(error));
+    else await loadData();
+  }
+}
+
+// ── PLANTATION ──
+function renderPlantation() {
+  const el = document.getElementById('page-plantation');
+  const data = localData.plantations||[];
+  const totalGraines = data.reduce((s,p)=>s+(Number(p.quantite)||0),0);
+  const totalPots = data.reduce((s,p)=>s+(Number(p.pots)||0),0);
+
+  el.innerHTML = `
+  <div class="cards-grid">
+    <div class="stat-card"><div class="stat-label">Graines plantées</div><div class="stat-value">${totalGraines} 🌱</div></div>
+    <div class="stat-card"><div class="stat-label">Pots utilisés</div><div class="stat-value">${totalPots} 🪴</div></div>
+    <div class="stat-card"><div class="stat-label">Sessions</div><div class="stat-value">${data.length}</div></div>
+  </div>
+  ${canWrite() ? `
+  <div class="form-card">
+    <p class="section-title">NOUVELLE PLANTATION</p>
+    <div class="form-row">
+      <div class="form-group"><label>Prénom</label><input type="text" id="pl-prenom" placeholder="Prénom"/></div>
+      <div class="form-group"><label>Nom</label><input type="text" id="pl-nom" placeholder="Nom"/></div>
+      <div class="form-group"><label>Type de graine</label><input type="text" id="pl-type" placeholder="ex: Purple Haze"/></div>
+      <div class="form-group"><label>Nb. graines plantées</label><input type="number" id="pl-qty" min="1" placeholder="1"/></div>
+      <div class="form-group"><label>Nb. pots utilisés</label><input type="number" id="pl-pots" min="0" placeholder="0"/></div>
+      <div class="form-group"><label>Bouteilles eau utilisées</label><input type="number" id="pl-eau" min="0" placeholder="0"/></div>
+      <div class="form-group"><label>Fertilisant utilisé</label><input type="number" id="pl-fertilisant" min="0" placeholder="0"/></div>
+      <div class="form-group"><label>Date plantation</label><input type="date" id="pl-date" value="${today()}"/></div>
+      <div class="form-group"><label>Notes</label><input type="text" id="pl-notes"/></div>
+    </div>
+    <button class="btn-add" onclick="addPlantation()">+ PLANTER</button>
+  </div>` : ''}
+  <div class="table-wrap">
+    <div class="table-header">HISTORIQUE PLANTATIONS</div>
+    <table>
+      <thead><tr><th>Date</th><th>Prénom Nom</th><th>Type</th><th>Graines</th><th>Pots</th><th>Eau</th><th>Fertilisant</th><th>Notes</th>${canDelete()?'<th></th>':''}</tr></thead>
+      <tbody>${data.map(p=>`
+        <tr>
+          <td style="font-family:var(--font-mono)">${p.date||p.created_at?.split('T')[0]||''}</td>
+          <td style="font-weight:600">${p.prenom||''} ${p.nom||''}</td>
+          <td>${p.type||'—'}</td>
+          <td>${p.quantite}</td>
+          <td>${p.pots||0}</td>
+          <td>${p.eau||0}</td>
+          <td>${p.fertilisant||0}</td>
+          <td style="color:var(--muted);font-size:12px">${p.notes||'—'}</td>
+          ${canDelete()?`<td><button class="btn-danger" onclick="delRow('plantations',${p.id})">✕</button></td>`:''}
+        </tr>`).join('')||'<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">Aucune plantation</td></tr>'}
+      </tbody>
+    </table>
+  </div>`;
+}
+window.addPlantation = async function addPlantation() {
+  const qty = Number(document.getElementById('pl-qty').value)||0;
+  const pots = Number(document.getElementById('pl-pots').value)||0;
+  const eau = Number(document.getElementById('pl-eau').value)||0;
+  const fertilisant = Number(document.getElementById('pl-fertilisant').value)||0;
+  await insertRow('plantations', {
+    prenom: document.getElementById('pl-prenom').value,
+    nom: document.getElementById('pl-nom').value,
+    type: document.getElementById('pl-type').value,
+    quantite: qty,
+    pots: pots,
+    eau: eau,
+    fertilisant: fertilisant,
+    date: document.getElementById('pl-date').value,
+    notes: document.getElementById('pl-notes').value,
+  });
+}
+
+// ── RETRAITS COFFRE ──
+function renderRetraits() {
+  const el = document.getElementById('page-retraits');
+  const data = localData.retraits||[];
+  const totalPropre = data.filter(r=>r.type_paiement==='propre').reduce((s,r)=>s+(Number(r.montant)||0),0);
+  const totalSale   = data.filter(r=>r.type_paiement==='sale').reduce((s,r)=>s+(Number(r.montant)||0),0);
+
+  el.innerHTML = `
+  <div class="cards-grid">
+    <div class="stat-card"><div class="stat-label">Nb. retraits</div><div class="stat-value">${data.length}</div></div>
+  </div>
+  ${canWrite() ? `
+  <div class="form-card">
+    <p class="section-title">NOUVEAU RETRAIT</p>
+    <div class="form-row">
+      <div class="form-group"><label>Prénom</label><input type="text" id="r-prenom" placeholder="Prénom"/></div>
+      <div class="form-group"><label>Nom</label><input type="text" id="r-nom" placeholder="Nom"/></div>
+      <div class="form-group">
+        <label>Article</label>
+        <select id="r-item">${ITEMS.map(i=>`<option value="${i.id}">${i.emoji} ${i.label}</option>`).join('')}</select>
+      </div>
+      <div class="form-group"><label>Quantité</label><input type="number" id="r-qty" min="1" placeholder="1"/></div>
+      <div class="form-group"><label>Date</label><input type="date" id="r-date" value="${today()}"/></div>
+    </div>
+    <button class="btn-add" onclick="addRetrait()">+ ENREGISTRER</button>
+  </div>` : ''}
+  <div class="table-wrap">
+    <div class="table-header">HISTORIQUE RETRAITS COFFRE</div>
+    <table>
+      <thead><tr><th>Date</th><th>Prénom Nom</th><th>Article</th><th>Qté</th>${canDelete()?'<th></th>':''}</tr></thead>
+      <tbody>${data.map(r=>`
+        <tr>
+          <td style="font-family:var(--font-mono)">${r.date||r.created_at?.split('T')[0]||''}</td>
+          <td style="font-weight:600">${r.prenom||''} ${r.nom||''}</td>
+          <td>${ITEMS.find(i=>i.id===r.item)?.emoji||''} ${ITEMS.find(i=>i.id===r.item)?.label||r.item||'—'}</td>
+          <td>${r.quantite||'—'}</td>
+          ${canDelete()?`<td><button class="btn-danger" onclick="delRow('retraits',${r.id})">✕</button></td>`:''}
+        </tr>`).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">Aucun retrait</td></tr>'}
+      </tbody>
+    </table>
+  </div>`;
+}
+window.addRetrait = async function addRetrait() {
+  const item = document.getElementById('r-item').value;
+  const qty = Number(document.getElementById('r-qty').value)||0;
+  const date = document.getElementById('r-date').value;
+  await insertRow('retraits', {
+    prenom: document.getElementById('r-prenom').value,
+    nom: document.getElementById('r-nom').value,
+    item: item,
+    quantite: qty,
+    date: date,
+  });
+  // Débiter le stock automatiquement
+  if(qty > 0) await insertRow('mouvements_stock', { item, quantite: qty, sens:'out', source:'retrait', date });
+}
+
+// ── VENTES MEMBRES ──
+function renderVentesMembres() {
+  const el = document.getElementById('page-ventes-membres');
+  const data = localData.votesMembres||[];
+  const totalPropre = data.filter(v=>v.type_paiement==='propre').reduce((s,v)=>s+(Number(v.montant)||0),0);
+  const totalSale   = data.filter(v=>v.type_paiement==='sale').reduce((s,v)=>s+(Number(v.montant)||0),0);
+  const totalDrogues = data.filter(v=>v.item==='drogue').reduce((s,v)=>s+(Number(v.quantite)||0),0);
+
+  el.innerHTML = `
+  <div class="cards-grid">
+    <div class="stat-card"><div class="stat-label">Total encaissé sale</div><div class="stat-value green">${fmt(totalSale)}</div></div>
+    <div class="stat-card"><div class="stat-label">Drogues vendues</div><div class="stat-value">${totalDrogues}</div></div>
+    <div class="stat-card"><div class="stat-label">Nb. ventes</div><div class="stat-value">${data.length}</div></div>
+  </div>
+  ${canWrite() ? `
+  <div class="form-card">
+    <p class="section-title">NOUVELLE VENTE MEMBRE</p>
+    <div class="form-row">
+      <div class="form-group"><label>Prénom</label><input type="text" id="vm-prenom" placeholder="Prénom"/></div>
+      <div class="form-group"><label>Nom</label><input type="text" id="vm-nom" placeholder="Nom"/></div>
+      <div class="form-group">
+        <label>Article</label>
+        <select id="vm-item">${ITEMS.map(i=>`<option value="${i.id}">${i.emoji} ${i.label}</option>`).join('')}</select>
+      </div>
+      <div class="form-group"><label>Quantité</label><input type="number" id="vm-qty" min="1" placeholder="1"/></div>
+      <div class="form-group"><label>Montant encaissé $</label><input type="number" id="vm-montant" min="0" placeholder="0"/></div>
+      <div class="form-group">
+        <label>Paiement</label>
+        <select id="vm-type"><option value="propre">Argent propre</option><option value="sale">Argent sale</option></select>
+      </div>
+      <div class="form-group"><label>Date</label><input type="date" id="vm-date" value="${today()}"/></div>
+      <div class="form-group"><label>Notes</label><input type="text" id="vm-notes"/></div>
+    </div>
+    <button class="btn-add" onclick="addVenteMembre()">+ AJOUTER</button>
+  </div>` : ''}
+  <div class="table-wrap">
+    <div class="table-header">HISTORIQUE VENTES MEMBRES</div>
+    <table>
+      <thead><tr><th>Date</th><th>Prénom Nom</th><th>Article</th><th>Qté</th><th>Montant</th><th>Paiement</th><th>Notes</th>${canDelete()?'<th></th>':''}</tr></thead>
+      <tbody>${data.map(v=>`
+        <tr>
+          <td style="font-family:var(--font-mono)">${v.date||v.created_at?.split('T')[0]||''}</td>
+          <td style="font-weight:600">${v.prenom||''} ${v.nom||''}</td>
+          <td>${ITEMS.find(i=>i.id===v.item)?.emoji||''} ${ITEMS.find(i=>i.id===v.item)?.label||v.item}</td>
+          <td>${v.quantite}</td>
+          <td>${fmt(Number(v.montant)||0)}</td>
+          <td>${moneyBadge(v.type_paiement)}</td>
+          <td style="color:var(--muted);font-size:12px">${v.notes||'—'}</td>
+          ${canDelete()?`<td><button class="btn-danger" onclick="delRow('ventes_membres',${v.id})">✕</button></td>`:''}
+        </tr>`).join('')||'<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">Aucune vente membre</td></tr>'}
+      </tbody>
+    </table>
+  </div>`;
+}
+window.addVenteMembre = async function addVenteMembre() {
+  await insertRow('ventes_membres', {
+    prenom: document.getElementById('vm-prenom').value,
+    nom: document.getElementById('vm-nom').value,
+    item: document.getElementById('vm-item').value,
+    quantite: Number(document.getElementById('vm-qty').value),
+    montant: Number(document.getElementById('vm-montant').value),
+    type_paiement: document.getElementById('vm-type').value,
+    date: document.getElementById('vm-date').value,
+    notes: document.getElementById('vm-notes').value,
+  });
+}
+
+// ── ACTIONS ILLÉGALES ──
+function renderActions() {
+  const el = document.getElementById('page-actions');
+  const data = localData.actions||[];
+  const totalPropre = data.filter(a=>a.type_paiement==='propre').reduce((s,a)=>s+(Number(a.montant)||0),0);
+  const totalSale   = data.filter(a=>a.type_paiement==='sale').reduce((s,a)=>s+(Number(a.montant)||0),0);
+  const countBy = (type) => data.filter(a=>a.type_action===type).length;
+
+  el.innerHTML = `
+  <div class="cards-grid">
+    <div class="stat-card"><div class="stat-label">Total récolté propre</div><div class="stat-value green">${fmt(totalPropre)}</div></div>
+    <div class="stat-card"><div class="stat-label">Total récolté sale</div><div class="stat-value green">${fmt(totalSale)}</div></div>
+    <div class="stat-card"><div class="stat-label">Total actions</div><div class="stat-value">${data.length}</div></div>
+    <div class="stat-card"><div class="stat-label">🏠 Cambriolages</div><div class="stat-value">${countBy('Cambriolage')}</div></div>
+    <div class="stat-card"><div class="stat-label">🔫 Braquages</div><div class="stat-value">${countBy('Braquage')}</div></div>
+    <div class="stat-card"><div class="stat-label">🏧 ATM</div><div class="stat-value">${countBy('ATM')}</div></div>
+    <div class="stat-card"><div class="stat-label">🚗 Gofast</div><div class="stat-value">${countBy('Gofast')}</div></div>
+  </div>
+  ${canWrite() ? `
+  <div class="form-card">
+    <p class="section-title">NOUVELLE ACTION</p>
+    <div class="form-row">
+      <div class="form-group"><label>Prénom</label><input type="text" id="ac-prenom" placeholder="Prénom"/></div>
+      <div class="form-group"><label>Nom</label><input type="text" id="ac-nom" placeholder="Nom"/></div>
+      <div class="form-group">
+        <label>Type d'action</label>
+        <select id="ac-type-action">${ACTION_TYPES.map(t=>`<option value="${t}">${t}</option>`).join('')}</select>
+      </div>
+      <div class="form-group"><label>Montant récolté $</label><input type="number" id="ac-montant" min="0" placeholder="0"/></div>
+      <div class="form-group">
+        <label>Paiement</label>
+        <select id="ac-type"><option value="propre">Argent propre</option><option value="sale">Argent sale</option></select>
+      </div>
+      <div class="form-group"><label>Date</label><input type="date" id="ac-date" value="${today()}"/></div>
+      <div class="form-group"><label>Notes</label><input type="text" id="ac-notes"/></div>
+    </div>
+    <button class="btn-add" onclick="addAction()">+ ENREGISTRER</button>
+  </div>` : ''}
+  <div class="table-wrap">
+    <div class="table-header">HISTORIQUE DES ACTIONS</div>
+    <table>
+      <thead><tr><th>Date</th><th>Prénom Nom</th><th>Action</th><th>Montant</th><th>Paiement</th><th>Notes</th>${canDelete()?'<th></th>':''}</tr></thead>
+      <tbody>${data.map(a=>`
+        <tr>
+          <td style="font-family:var(--font-mono)">${a.date||a.created_at?.split('T')[0]||''}</td>
+          <td style="font-weight:600">${a.prenom||''} ${a.nom||''}</td>
+          <td><span class="badge" style="background:rgba(200,164,90,0.15);color:var(--gold);border:1px solid rgba(200,164,90,0.3)">${a.type_action}</span></td>
+          <td>${fmt(Number(a.montant)||0)}</td>
+          <td>${moneyBadge(a.type_paiement)}</td>
+          <td style="color:var(--muted);font-size:12px">${a.notes||'—'}</td>
+          ${canDelete()?`<td><button class="btn-danger" onclick="delRow('actions_illegales',${a.id})">✕</button></td>`:''}
+        </tr>`).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">Aucune action enregistrée</td></tr>'}
+      </tbody>
+    </table>
+  </div>`;
+}
+window.addAction = async function addAction() {
+  await insertRow('actions_illegales', {
+    prenom: document.getElementById('ac-prenom').value,
+    nom: document.getElementById('ac-nom').value,
+    type_action: document.getElementById('ac-type-action').value,
+    montant: Number(document.getElementById('ac-montant').value),
+    type_paiement: document.getElementById('ac-type').value,
+    date: document.getElementById('ac-date').value,
+    notes: document.getElementById('ac-notes').value,
+  });
+}
+
+// ── MAGASIN ──
+function renderMagasin() {
+  const el = document.getElementById('page-magasin');
+  const stock = getStock();
+  const vendable = ITEMS.filter(i => i.vendable);
+
+  el.innerHTML = `
+  <div class="contact-card">
+    <span class="contact-icon">📞</span>
+    <div class="contact-info">
+      <h3>COMMANDER</h3>
+      <p>Numéro : 555-622-543 &nbsp;|&nbsp; Livraison sur rendez-vous</p>
+    </div>
+  </div>
+  <p class="section-title">PRODUITS DISPONIBLES</p>
+  <div class="shop-grid">
+    ${vendable.map(i => {
+      const s = stock[i.id]||{in:0,out:0};
+      const dispo = Math.max(0, s.in - s.out);
+      return `<div class="shop-item">
+        <span class="shop-emoji">${i.emoji}</span>
+        <div class="shop-name">${i.label}</div>
+        <div class="shop-qty">${dispo}</div>
+        <div class="shop-label">en stock</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+// ── DELETE ──
+window.delRow = async function delRow(table, id) {
+  if(!canDelete()) return;
+  if(!confirm('Supprimer cette entrée ?')) return;
+  await deleteRow(table, id);
+}
+
+// ── UTILS ──
+function today() {
+  return new Date().toISOString().split('T')[0];
+}
+</script>
+</body>
+</html>
