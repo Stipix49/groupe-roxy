@@ -957,7 +957,14 @@ function renderFabrication() {
     <p style="font-size:12px;color:var(--muted);margin-bottom:16px;font-family:var(--font-mono)">Ces articles sont automatiquement ajoutés au stock.</p>
     <div class="form-row">
       <div class="form-group">
-        <label>Article fabriqué / récolté</label>
+        <label>Type</label>
+        <select id="fab-type">
+          <option value="recolte">🌿 Récolte</option>
+          <option value="production">⚗️ Production</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Article</label>
         <select id="fab-item">
           ${ITEMS_FAB.map(i=>`<option value="${i.id}">${i.emoji} ${i.label}</option>`).join('')}
         </select>
@@ -971,15 +978,16 @@ function renderFabrication() {
   <div class="table-wrap">
     <div class="table-header">HISTORIQUE FABRICATION / RÉCOLTE</div>
     <table>
-      <thead><tr><th>Date</th><th>Article</th><th>Quantité</th><th>Notes</th>${canDelete()?'<th></th>':''}</tr></thead>
+      <thead><tr><th>Date</th><th>Type</th><th>Article</th><th>Quantité</th><th>Notes</th>${canDelete()?'<th></th>':''}</tr></thead>
       <tbody>${data.map(f=>`
         <tr>
           <td style="font-family:var(--font-mono)">${f.date||f.created_at?.split('T')[0]||''}</td>
+          <td><span class="badge" style="background:${f.type_fab==='production'?'rgba(200,164,90,0.15)':'rgba(39,174,96,0.15)'};color:${f.type_fab==='production'?'var(--gold)':'var(--green)'};border:1px solid ${f.type_fab==='production'?'rgba(200,164,90,0.3)':'rgba(39,174,96,0.3)'}">${f.type_fab==='production'?'⚗️ Production':'🌿 Récolte'}</span></td>
           <td>${ITEMS.find(i=>i.id===f.item)?.emoji||''} ${ITEMS.find(i=>i.id===f.item)?.label||f.item}</td>
           <td style="font-weight:600;color:var(--green)">${f.quantite}</td>
           <td style="color:var(--muted);font-size:12px">${f.notes||'—'}</td>
           ${canDelete()?`<td><button class="btn-danger" onclick="delRow('fabrications',${f.id})">✕</button></td>`:''}
-        </tr>`).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">Aucune fabrication</td></tr>'}
+        </tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">Aucune fabrication</td></tr>'}
       </tbody>
     </table>
   </div>`;
@@ -989,9 +997,9 @@ window.addFabrication = async function addFabrication() {
   const qty = Number(document.getElementById('fab-qty').value)||0;
   const date = document.getElementById('fab-date').value;
   const notes = document.getElementById('fab-notes').value;
+  const type_fab = document.getElementById('fab-type').value;
   if(qty <= 0) return;
-  // Ajoute la production au stock
-  await insertRow('fabrications', { item, quantite: qty, date, notes });
+  await insertRow('fabrications', { item, quantite: qty, date, notes, type_fab });
   // Si on produit de la salvia, débiter les feuilles de salvia
   if(item === 'salvia' && qty > 0 && db) {
     const { error } = await db.from('mouvements_stock').insert({
