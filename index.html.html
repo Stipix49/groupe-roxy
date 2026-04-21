@@ -599,15 +599,9 @@ function getStock() {
     if(stock[v.item]) stock[v.item].out += Number(v.quantite)||0;
   });
 
-  // Sorties : retraits coffre
+  // Sorties : retraits coffre (source unique)
   (localData.retraits||[]).forEach(r => {
     if(r.item && stock[r.item]) stock[r.item].out += Number(r.quantite)||0;
-  });
-
-  // Sorties : mouvements stock
-  (localData.mouvementsStock||[]).forEach(m => {
-    if(m.sens === 'out' && stock[m.item]) stock[m.item].out += Number(m.quantite)||0;
-    if(m.sens === 'in' && stock[m.item]) stock[m.item].in += Number(m.quantite)||0;
   });
 
   return stock;
@@ -1133,8 +1127,6 @@ window.addRetrait = async function addRetrait() {
     quantite: qty,
     date: date,
   });
-  // Débiter le stock automatiquement
-  if(qty > 0) await insertRow('mouvements_stock', { item, quantite: qty, sens:'out', source:'retrait', date });
 }
 
 // ── VENTES MEMBRES ──
